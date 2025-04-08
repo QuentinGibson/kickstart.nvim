@@ -190,6 +190,9 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', 'H', '^', { desc = 'Move cursor to start of the line' })
+vim.keymap.set('n', 'L', '$', { desc = 'Move cursor to end of the line' })
+vim.keymap.set('n', '<leader>w', ':write<CR>', { desc = 'Save file quickly' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
@@ -340,7 +343,7 @@ require('lazy').setup({
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
-        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>W', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
@@ -578,6 +581,17 @@ require('lazy').setup({
             if vim.fn.has 'nvim-0.11' == 1 then
               return client:supports_method(method, bufnr)
             else
+              -- Highlight when yanking (copying) text
+              --  Try it with `yap` in normal mode
+              --  See `:help vim.highlight.on_yank()`
+              vim.api.nvim_create_autocmd('TextYankPost', {
+                desc = 'Highlight when yanking (copying) text',
+                group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+                callback = function()
+                  vim.highlight.on_yank()
+                end,
+              })
+
               return client.supports_method(method, { bufnr = bufnr })
             end
           end
@@ -679,7 +693,8 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
+        ts_ls = {},
+        emmet_language_server = {},
         --
 
         lua_ls = {
@@ -770,7 +785,10 @@ require('lazy').setup({
         -- python = { "isort", "black" },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'prettier', stop_after_first = true },
+        typescript = { 'prettier', stop_after_first = true },
+        typescriptreact = { 'prettier', stop_after_first = true },
       },
     },
   },
