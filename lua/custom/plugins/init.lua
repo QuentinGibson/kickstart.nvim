@@ -46,4 +46,54 @@ return {
       }
     end,
   },
+  {
+    'luckasRanarison/tailwind-tools.nvim',
+    name = 'tailwind-tools',
+    build = ':UpdateRemotePlugins',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-telescope/telescope.nvim', -- optional
+      'neovim/nvim-lspconfig', -- optional
+    },
+    opts = {}, -- your configuration
+  },
+  {
+    'tris203/hawtkeys.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = {
+      -- an empty table will work for default config
+      --- if you use functions, or whichkey, or lazy to map keys
+      --- then please see the API below for options
+    },
+  },
+  {
+    'olimorris/codecompanion.nvim',
+    opts = {},
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+  },
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {}
+    end,
+  },
+  {
+    'ggandor/leap.nvim',
+    config = function()
+      require('leap').set_default_mappings()
+    end,
+  },
+  {
+    'scottmckendry/cyberdream.nvim',
+    lazy = false,
+    priority = 1000,
+  },
 }
