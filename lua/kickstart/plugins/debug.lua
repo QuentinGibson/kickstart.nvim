@@ -81,6 +81,8 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    local js_filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' }
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
@@ -94,10 +96,10 @@ return {
       -- online, please don't ask me how to install them :)
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
-        'delve',
+        'chrome',
+        'js-debug-adapter',
       },
     }
-
     -- Dap UI setup
     -- For more information, see |:help nvim-dap-ui|
     dapui.setup {
@@ -144,5 +146,46 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+    for _, language in ipairs(js_filetypes) do
+      dap.configurations[language] = {
+        {
+          name = 'Next.js: debug server-side',
+          type = 'js-debug-adapter',
+          request = 'launch',
+          runtimeExecutable = '${workspaceFolder}/node_modules/.bin/next',
+          runtimeArgs = { 'dev' },
+          cwd = '${workspaceFolder}',
+          sourceMaps = true,
+          protocol = 'inspector',
+          console = 'integratedTerminal',
+        },
+        {
+          name = 'Next.js: debug client-side',
+          type = 'chrome',
+          request = 'launch',
+          url = 'http://localhost:3000',
+          webRoot = '${workspaceFolder}',
+        },
+        {
+          name = 'Next.js: debug client-side (Firefox)',
+          type = 'firefox',
+          request = 'launch',
+          url = 'http://localhost:3000',
+          reAttach = true,
+          pathMappings = {
+            {
+              url = 'webpack://_N_E',
+              path = '${workspaceFolder}',
+            },
+          },
+        },
+        {
+          name = 'Next.js: debug full stack',
+          type = 'compound',
+          configurations = { 'Next.js: debug client-side', 'Next.js: debug server-side' },
+          stopAll = true,
+        },
+      }
+    end
   end,
 }
