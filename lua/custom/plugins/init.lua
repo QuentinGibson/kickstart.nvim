@@ -1,13 +1,6 @@
--- You can add your own plugins here or in other files in this directory!
---  I promise not to create any merge conflicts in this directory :)
---
--- See the kickstart.nvim README for more information
---
-
 local function parse_emmet(input)
   local tag, class = input:match '([^%.]+)%.?(.*)'
   if class and class ~= '' then
-    -- Replace dots with spaces but preserve pseudo-classes like hover: and before:
     class = class:gsub('(%S):', '%1:') -- Keep pseudo-classes intact
     class = class:gsub('%.', ' ') -- Convert dots to spaces for regular classes
     return { { '<' .. tag .. ' className="' .. class .. '">' }, { '</' .. tag .. '>' } }
@@ -26,7 +19,7 @@ return {
 
   {
     'kylechui/nvim-surround',
-    version = '*', -- Use the latest stable version
+    version = '*',
     event = 'VeryLazy',
     hooks = {
       post_add = function()
@@ -46,29 +39,28 @@ return {
       }
     end,
   },
+
   {
     'luckasRanarison/tailwind-tools.nvim',
     name = 'tailwind-tools',
     build = ':UpdateRemotePlugins',
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
-      'nvim-telescope/telescope.nvim', -- optional
-      'neovim/nvim-lspconfig', -- optional
+      'nvim-telescope/telescope.nvim',
+      'neovim/nvim-lspconfig',
     },
-    opts = {}, -- your configuration
+    opts = {},
   },
+
   {
     'tris203/hawtkeys.nvim',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-treesitter/nvim-treesitter',
     },
-    config = {
-      -- an empty table will work for default config
-      --- if you use functions, or whichkey, or lazy to map keys
-      --- then please see the API below for options
-    },
+    config = {},
   },
+
   {
     'olimorris/codecompanion.nvim',
     opts = {},
@@ -77,6 +69,7 @@ return {
       'nvim-treesitter/nvim-treesitter',
     },
   },
+
   {
     'zbirenbaum/copilot.lua',
     cmd = 'Copilot',
@@ -85,19 +78,23 @@ return {
       require('copilot').setup {}
     end,
   },
+
   {
     'ggandor/leap.nvim',
     config = function()
       require('leap').set_default_mappings()
     end,
   },
+
   {
     'scottmckendry/cyberdream.nvim',
     lazy = false,
     priority = 1000,
   },
+
   { 'catppuccin/nvim', name = 'catppuccin', priority = 1000 },
   { 'xiyaowong/transparent.nvim' },
+
   {
     'kdheepak/lazygit.nvim',
     lazy = true,
@@ -108,14 +105,61 @@ return {
       'LazyGitFilter',
       'LazyGitFilterCurrentFile',
     },
-    -- optional for floating window border decoration
     dependencies = {
       'nvim-lua/plenary.nvim',
     },
-    -- setting the keybinding for LazyGit with 'keys' is recommended in
-    -- order to load the plugin when the command is run for the first time
     keys = {
       { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
     },
+  },
+
+  {
+    'nvim-neotest/neotest',
+    dependencies = {
+      'marilari88/neotest-vitest',
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    keys = {
+      {
+        '<leader>tt',
+        function()
+          require('neotest').run.run()
+        end,
+        desc = 'Run nearest test',
+      },
+      {
+        '<leader>tf',
+        function()
+          require('neotest').run.run(vim.fn.expand '%')
+        end,
+        desc = 'Run current file',
+      },
+      {
+        '<leader>to',
+        function()
+          require('neotest').output.open { enter = true }
+        end,
+        desc = 'Open test output',
+      },
+      {
+        '<leader>ts',
+        function()
+          require('neotest').summary.toggle()
+        end,
+        desc = 'Toggle test summary',
+      },
+    },
+    config = function()
+      require('neotest').setup {
+        adapters = {
+          require 'neotest-vitest' {
+            vitestConfigFile = 'vitest.unit.config.ts',
+          },
+        },
+      }
+    end,
   },
 }

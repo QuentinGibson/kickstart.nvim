@@ -7,9 +7,7 @@
 -- kickstart.nvim and not kitchen-sink.nvim ;)
 
 return {
-  -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
-  -- NOTE: And you can specify dependencies as well
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
@@ -20,9 +18,12 @@ return {
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
     'jay-babu/mason-nvim-dap.nvim',
-
-    -- Add your own debuggers here
-    'leoluz/nvim-dap-go',
+    'mxsdev/nvim-dap-vscode-js',
+    {
+      'microsoft/vscode-js-debug',
+      opt = true,
+      build = 'npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out',
+    },
   },
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
@@ -96,8 +97,6 @@ return {
       -- online, please don't ask me how to install them :)
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
-        'chrome',
-        'js-debug-adapter',
       },
     }
     -- Dap UI setup
@@ -123,67 +122,94 @@ return {
     }
 
     -- Change breakpoint icons
-    -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
-    -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
-    -- local breakpoint_icons = vim.g.have_nerd_font
-    --     and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
-    --   or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
-    -- for type, icon in pairs(breakpoint_icons) do
-    --   local tp = 'Dap' .. type
-    --   local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
-    --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
-    -- end
+    vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
+    vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
+    local breakpoint_icons = vim.g.have_nerd_font
+        and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
+      or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
+    for type, icon in pairs(breakpoint_icons) do
+      local tp = 'Dap' .. type
+      local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
+      vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
+    end
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
 
-    -- Install golang specific config
-    require('dap-go').setup {
-      delve = {
-        -- On Windows delve must be run attached or it crashes.
-        -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
-        detached = vim.fn.has 'win32' == 0,
+    require('dap-vscode-js').setup {
+      debugger_cmd = { 'js-debug-adapter' },
+      debugger_path = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter',
+      adapters = { 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost' },
+    }
+
+    dap.adapters['pwa-node'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = 'node',
+        args = {
+          vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js',
+          '${port}',
+        },
       },
     }
+
     for _, language in ipairs(js_filetypes) do
       dap.configurations[language] = {
         {
-          name = 'Next.js: debug server-side',
-          type = 'js-debug-adapter',
+          name = 'Run Puppeteer script with tsx',
+          type = 'pwa-node',
           request = 'launch',
-          runtimeExecutable = '${workspaceFolder}/node_modules/.bin/next',
-          runtimeArgs = { 'dev' },
+          runtimeExecutable = 'tsx',
+          program = '${file}',
+          cwd = '${workspaceFolder}',
+          console = 'integratedTerminal',
+          internalConsoleOptions = 'neverOpen',
+          skipFiles = { '<node_internals>/**' },
+          sourceMaps = true,
+          protocol = 'inspector',
+        },
+        {
+          name = 'Launch',
+          type = 'pwa-node',
+          request = 'launch',
+          program = '${file}',
+          rootPath = '${workspaceFolder}',
           cwd = '${workspaceFolder}',
           sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
           protocol = 'inspector',
           console = 'integratedTerminal',
         },
         {
-          name = 'Next.js: debug client-side',
-          type = 'chrome',
-          request = 'launch',
-          url = 'http://localhost:3000',
-          webRoot = '${workspaceFolder}',
+          type = 'pwa-node',
+          request = 'attach',
+          name = 'Attach',
+          processId = require('dap.utils').pick_process,
+          cwd = '${workspaceFolder}',
         },
         {
-          name = 'Next.js: debug client-side (Firefox)',
-          type = 'firefox',
-          request = 'launch',
-          url = 'http://localhost:3000',
-          reAttach = true,
-          pathMappings = {
-            {
-              url = 'webpack://_N_E',
-              path = '${workspaceFolder}',
-            },
-          },
+          type = 'pwa-node',
+          request = 'attach',
+          name = 'Attach to node',
+          processId = require('dap.utils').pick_process,
+          cwd = '${workspaceFolder}',
         },
         {
-          name = 'Next.js: debug full stack',
-          type = 'compound',
-          configurations = { 'Next.js: debug client-side', 'Next.js: debug server-side' },
-          stopAll = true,
+          name = 'Debug Vitest (run file)',
+          type = 'pwa-node',
+          request = 'launch',
+          runtimeExecutable = 'node',
+          runtimeArgs = { './node_modules/vitest/vitest.mjs', '--config', 'vitest.unit.config.ts', 'run', '${file}' },
+          cwd = '${workspaceFolder}',
+          console = 'integratedTerminal',
+          internalConsoleOptions = 'neverOpen',
+          skipFiles = { '<node_internals>/**', '**/node_modules/**' },
+          sourceMaps = true,
+          protocol = 'inspector',
+          smartStep = true,
         },
       }
     end
