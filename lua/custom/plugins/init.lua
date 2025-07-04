@@ -16,7 +16,6 @@ return {
       require('nvim-ts-autotag').setup()
     end,
   },
-
   {
     'kylechui/nvim-surround',
     version = '*',
@@ -39,7 +38,6 @@ return {
       }
     end,
   },
-
   {
     'luckasRanarison/tailwind-tools.nvim',
     name = 'tailwind-tools',
@@ -51,7 +49,6 @@ return {
     },
     opts = {},
   },
-
   {
     'tris203/hawtkeys.nvim',
     dependencies = {
@@ -60,16 +57,8 @@ return {
     },
     config = {},
   },
-
-  {
-    'olimorris/codecompanion.nvim',
-    opts = {},
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'nvim-treesitter/nvim-treesitter',
-    },
-  },
-
+  -- CodeCompanion configuration moved to separate file
+  -- Configuration is in ~/.config/nvim/lua/plugins/codecompanion.lua
   {
     'zbirenbaum/copilot.lua',
     cmd = 'Copilot',
@@ -78,23 +67,19 @@ return {
       require('copilot').setup {}
     end,
   },
-
   {
     'ggandor/leap.nvim',
     config = function()
       require('leap').set_default_mappings()
     end,
   },
-
   {
     'scottmckendry/cyberdream.nvim',
     lazy = false,
     priority = 1000,
   },
-
   { 'catppuccin/nvim', name = 'catppuccin', priority = 1000 },
   { 'xiyaowong/transparent.nvim' },
-
   {
     'kdheepak/lazygit.nvim',
     lazy = true,
@@ -112,7 +97,6 @@ return {
       { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
     },
   },
-
   {
     'nvim-neotest/neotest',
     dependencies = {
@@ -160,6 +144,19 @@ return {
           },
         },
       }
+    end,
+  },
+  {
+    'mbbill/undotree',
+    cmd = 'UndotreeToggle',
+    keys = {
+      { '<leader>ud', '<cmd>UndotreeToggle<cr>', desc = 'Toggle Undotree' },
+    },
+    config = function()
+      -- Optional: Configure undotree settings
+      vim.g.undotree_WindowLayout = 2
+      vim.g.undotree_SplitWidth = 30
+      vim.g.undotree_SetFocusWhenToggle = 1
     end,
   },
 }
