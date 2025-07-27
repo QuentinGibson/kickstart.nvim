@@ -13,7 +13,7 @@ local return_filename = function()
 end
 
 ls.add_snippets('typescriptreact', {
-  s('component', {
+  s('sfc', {
     t 'function ',
     f(return_filename),
     t { '() {', '\t' },
@@ -23,7 +23,7 @@ ls.add_snippets('typescriptreact', {
     f(return_filename),
   }),
 
-  s('componentp', {
+  s('sfcp', {
     -- Props interface
     t { 'interface ' },
     f(function()
