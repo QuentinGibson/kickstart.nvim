@@ -219,13 +219,434 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
-vim.keymap.set('i', '<C-h>', '<Left>', { noremap = true })
-vim.keymap.set('i', '<C-l>', '<Right>', { noremap = true })
+vim.keymap.set('i', '<C-h>', '<Left>', { desc = 'Move cursor left in insert mode' })
+vim.keymap.set('i', '<C-l>', '<Right>', { desc = 'Move cursor right in insert mode' })
+vim.keymap.set('i', '<C-j>', '<Down>', { desc = 'Move cursor down in insert mode' })
+vim.keymap.set('i', '<C-k>', '<Up>', { desc = 'Move cursor up in insert mode' })
 
-vim.keymap.set('i', '<C-h>', '<Left>', { desc = 'Move cursor left' })
-vim.keymap.set('i', '<C-j>', '<Down>', { desc = 'Move cursor down' })
-vim.keymap.set('i', '<C-k>', '<Up>', { desc = 'Move cursor up' })
-vim.keymap.set('i', '<C-l>', '<Right>', { desc = 'Move cursor right' })
+-- React-specific keybindings
+vim.keymap.set('n', '<leader>rc', function()
+  -- Create a new React component in current buffer
+  local component_name = vim.fn.input 'Component name: '
+  if component_name == '' then
+    return
+  end
+  local lines = {
+    'interface ' .. component_name .. 'Props {',
+    '  // Define props here',
+    '}',
+    '',
+    'function ' .. component_name .. '({}: ' .. component_name .. 'Props) {',
+    '  return (',
+    '    <div>',
+    '      ' .. component_name,
+    '    </div>',
+    '  )',
+    '}',
+    '',
+    'export default ' .. component_name,
+  }
+  vim.api.nvim_put(lines, 'l', true, true)
+end, { desc = '[R]eact: Create new [c]omponent' })
+
+vim.keymap.set('v', '<leader>re', function()
+  -- Extract selected JSX to a new component
+  local start_line = vim.fn.getpos("'<")[2]
+  local end_line = vim.fn.getpos("'>")[2]
+  local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+  
+  local component_name = vim.fn.input 'New component name: '
+  if component_name == '' then
+    return
+  end
+  
+  -- Create the new component
+  local new_component = {
+    'interface ' .. component_name .. 'Props {',
+    '  // Define props here',
+    '}',
+    '',
+    'function ' .. component_name .. '({}: ' .. component_name .. 'Props) {',
+    '  return (',
+  }
+  
+  -- Add the selected lines with proper indentation
+  for _, line in ipairs(lines) do
+    table.insert(new_component, '    ' .. line)
+  end
+  
+  table.insert(new_component, '  )')
+  table.insert(new_component, '}')
+  table.insert(new_component, '')
+  
+  -- Replace selection with component usage
+  vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, { '<' .. component_name .. ' />' })
+  
+  -- Add the component definition at the end of file
+  local buf_lines = vim.api.nvim_buf_line_count(0)
+  vim.api.nvim_buf_set_lines(0, buf_lines, buf_lines, false, new_component)
+  
+  print('Created component: ' .. component_name)
+end, { desc = '[R]eact: [E]xtract to component' })
+
+vim.keymap.set('n', '<leader>rh', function()
+  -- Generate custom hook from selected code
+  local hook_name = vim.fn.input 'Hook name (without "use" prefix): '
+  if hook_name == '' then
+    return
+  end
+  
+  local lines = {
+    'export function use' .. hook_name .. '() {',
+    '  // Hook logic here',
+    '  ',
+    '  return {',
+    '    // Return values',
+    '  }',
+    '}',
+  }
+  
+  vim.api.nvim_put(lines, 'l', true, true)
+end, { desc = '[R]eact: Create custom [h]ook' })
+
+vim.keymap.set('n', '<leader>r?', function()
+  local react_help = {
+    '╭─────────────── React Development Tools ───────────────╮',
+    '│                                                       │',
+    '│ 📝 SNIPPETS (type + Tab):                            │',
+    '│   sfc      → Simple functional component              │',
+    '│   sfcp     → Functional component with props          │',
+    '│   rfce     → React FC with export + import            │',
+    '│   rafce    → Arrow FC with export                     │',
+    '│   useState → const [state, setState] = useState()     │',
+    '│   useEffect→ useEffect with cleanup                   │',
+    '│   useCallback, useMemo, useRef → Hook snippets       │',
+    '│   custom   → Custom hook template                     │',
+    '│   ctx      → Context with provider & hook             │',
+    '│                                                       │',
+    '│ ⌨️  KEYBINDINGS:                                      │',
+    '│   <leader>rc  → Create new component                  │',
+    '│   <leader>re  → Extract JSX to component (visual)     │',
+    '│   <leader>rh  → Create custom hook                    │',
+    '│   <leader>ri  → Add missing imports                   │',
+    '│   <leader>ro  → Organize imports                      │',
+    '│   <leader>ru  → Remove unused imports                 │',
+    '│   <leader>rf  → Fix all TypeScript errors             │',
+    '│   <leader>rg  → Go to source definition               │',
+    '│                                                       │',
+    '│ 🚀 TIPS:                                              │',
+    '│   • Ctrl+h/l in insert mode to move left/right       │',
+    '│   • Auto-imports work on completion                   │',
+    '│   • React hooks are prioritized in suggestions        │',
+    '│                                                       │',
+    '╰───────────────────────────────────────────────────────╯',
+  }
+  
+  -- Create a floating window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, react_help)
+  
+  local width = 60
+  local height = #react_help
+  local win_opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2,
+    style = 'minimal',
+    border = 'rounded',
+  }
+  
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+  
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+  
+  -- Close on any key press
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', ':close<CR>', { noremap = true, silent = true })
+end, { desc = '[R]eact: Show [?]help for React tools' })
+
+vim.keymap.set('n', '<leader>t?', function()
+  local tmux_help = {
+    '╭──────────────────── TMUX Keybindings ─────────────────────╮',
+    '│  Prefix: Ctrl+a (C-a)                                      │',
+    '│                                                            │',
+    '│ 🪟 WINDOWS:                                                │',
+    '│   C-a c      → Create new window                           │',
+    '│   C-a ,      → Rename current window                       │',
+    '│   C-a n/p    → Next/Previous window                        │',
+    '│   C-a 0-9    → Switch to window by number                  │',
+    '│   C-a w      → List all windows                            │',
+    '│   C-a &      → Kill current window                         │',
+    '│   C-a .      → Move window (prompt for new number)         │',
+    '│   C-a </>    → Swap window left/right                      │',
+    '│                                                            │',
+    '│ 📐 PANES (tmux-pain-control):                              │',
+    '│   C-a |      → Split vertically                            │',
+    '│   C-a -      → Split horizontally                          │',
+    '│   C-a h/j/k/l→ Navigate panes (vim-like)                   │',
+    '│   C-a H/J/K/L→ Resize pane by 5 (shift + direction)        │',
+    '│   C-a </>    → Move pane left/right                        │',
+    '│   C-a z      → Toggle pane zoom                            │',
+    '│   C-a x      → Kill current pane                           │',
+    '│   C-a !      → Break pane into window                      │',
+    '│   C-a Space  → Toggle pane layouts                         │',
+    '│                                                            │',
+    '│ 🎯 SESSIONS (tmux-sessionist):                             │',
+    '│   C-a g      → Switch to session (prompt)                  │',
+    '│   C-a C      → Create new session                          │',
+    '│   C-a X      → Kill current session                        │',
+    '│   C-a S      → Switch to last session                      │',
+    '│   C-a @      → Promote window to session                   │',
+    '│   C-a s      → List all sessions                           │',
+    '│   C-a $      → Rename current session                      │',
+    '│   C-a (/)    → Switch to previous/next session             │',
+    '│                                                            │',
+    '│ 📋 COPY MODE (vi-mode):                                    │',
+    '│   C-a [      → Enter copy mode                             │',
+    '│   v          → Start selection (in copy mode)              │',
+    '│   V          → Line selection                              │',
+    '│   C-v        → Rectangle selection                         │',
+    '│   y          → Copy selection                              │',
+    '│   C-a ]      → Paste                                       │',
+    '│   q/Esc      → Exit copy mode                              │',
+    '│                                                            │',
+    '│ 🔍 SEARCH (tmux-copycat):                                  │',
+    '│   C-a /      → Search (regex)                              │',
+    '│   C-a C-f    → Simple file search                          │',
+    '│   C-a C-g    → Git status files                            │',
+    '│   C-a C-u    → URLs search                                 │',
+    '│   C-a C-d    → Digits search                               │',
+    '│   C-a M-h    → SHA-1 hashes                                │',
+    '│   n/N        → Next/Previous match (in copy mode)          │',
+    '│                                                            │',
+    '│ 💾 RESURRECT:                                              │',
+    '│   C-a C-s    → Save session                                │',
+    '│   C-a C-r    → Restore session                             │',
+    '│                                                            │',
+    '│ 🎮 OTHER:                                                  │',
+    '│   C-a ?      → Show all keybindings                        │',
+    '│   C-a :      → Command prompt                              │',
+    '│   C-a d      → Detach from session                         │',
+    '│   C-a r      → Reload config                               │',
+    '│   C-a t      → Show time                                   │',
+    '╰────────────────────────────────────────────────────────────╯',
+  }
+  
+  -- Create a floating window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, tmux_help)
+  
+  local width = 65
+  local height = #tmux_help
+  local win_opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2 - 2,
+    style = 'minimal',
+    border = 'rounded',
+  }
+  
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+  
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+  
+  -- Add syntax highlighting for better readability
+  vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+  
+  -- Close on any key press
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', ':close<CR>', { noremap = true, silent = true })
+end, { desc = '[T]mux: Show [?]help for tmux keybindings' })
+
+vim.keymap.set('n', '<leader>q?', function()
+  local quickfix_help = {
+    '╭────────────────── Quickfix List Guide ────────────────────╮',
+    '│                                                            │',
+    '│ 📋 OPENING QUICKFIX:                                       │',
+    '│   :copen     → Open quickfix window                        │',
+    '│   :cclose    → Close quickfix window                       │',
+    '│   :cwindow   → Open only if there are items                │',
+    '│   <leader>q  → Open diagnostic quickfix (configured)       │',
+    '│                                                            │',
+    '│ 🔍 NAVIGATION:                                             │',
+    '│   :cnext/:cn → Go to next item                             │',
+    '│   :cprev/:cp → Go to previous item                         │',
+    '│   :cfirst    → Go to first item                            │',
+    '│   :clast     → Go to last item                             │',
+    '│   :[n]cc     → Go to item number [n]                       │',
+    '│   <CR>       → Jump to item under cursor (in QF window)    │',
+    '│                                                            │',
+    '│ 📝 POPULATING QUICKFIX:                                    │',
+    '│   :vimgrep /pattern/ **/*.js  → Search files               │',
+    '│   :grep pattern files         → Use external grep          │',
+    '│   :make                       → Run make & populate errors  │',
+    '│   <leader>sd → Search diagnostics (Telescope)              │',
+    '│   <leader>sg → Live grep (Telescope)                       │',
+    '│                                                            │',
+    '│ 🔧 QUICKFIX BUFFER COMMANDS:                               │',
+    '│   o          → Open item (stay in QF)                      │',
+    '│   <CR>       → Open item (close QF)                        │',
+    '│   p          → Preview item                                │',
+    '│   dd         → Remove item from list                       │',
+    '│   :cdo {cmd} → Execute {cmd} on each file                  │',
+    '│   :cfdo {cmd}→ Execute {cmd} on each unique file           │',
+    '│                                                            │',
+    '│ 📚 QUICKFIX HISTORY:                                       │',
+    '│   :colder    → Go to older quickfix list                   │',
+    '│   :cnewer    → Go to newer quickfix list                   │',
+    '│   :chistory  → Show quickfix lists history                 │',
+    '│                                                            │',
+    '│ 🌍 LOCATION LIST (local to window):                        │',
+    '│   :lopen     → Open location list                          │',
+    '│   :lclose    → Close location list                         │',
+    '│   :lnext     → Next location                               │',
+    '│   :lprev     → Previous location                           │',
+    '│                                                            │',
+    '│ 💡 TIPS:                                                   │',
+    '│   • :cgetbuffer → Load QF from current buffer              │',
+    '│   • :caddexpr → Add expression results to QF               │',
+    '│   • Set height: :copen 10                                  │',
+    '│   • Filter list: :Cfilter[!] /pattern/                     │',
+    '│   • QF is just a buffer - you can edit it!                 │',
+    '╰────────────────────────────────────────────────────────────╯',
+  }
+  
+  -- Create a floating window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, quickfix_help)
+  
+  local width = 65
+  local height = #quickfix_help
+  local win_opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2 - 2,
+    style = 'minimal',
+    border = 'rounded',
+  }
+  
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+  
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+  
+  -- Add syntax highlighting for better readability
+  vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+  
+  -- Close on any key press
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', ':close<CR>', { noremap = true, silent = true })
+end, { desc = '[Q]uickfix: Show [?]help for quickfix list' })
+
+vim.keymap.set('n', '<leader>c?', function()
+  local commands_help = {
+    '╭──────── Power Commands for React Development (: mode) ────────╮',
+    '│                                                                │',
+    '│ 🔄 MULTI-FILE OPERATIONS:                                      │',
+    '│   :args **/*.tsx        → Load all TSX files into args        │',
+    '│   :args `find . -name "*.test.tsx"` → Load all test files     │',
+    '│   :argdo %s/old/new/ge | update → Replace in all arg files    │',
+    '│   :bufdo %s/old/new/ge | update → Replace in all buffers      │',
+    '│   :windo diffthis       → Diff all visible windows            │',
+    '│   :tabdo windo set wrap → Set wrap in all tabs/windows        │',
+    '│                                                                │',
+    '│ 🎯 TARGETED SEARCH & REPLACE:                                  │',
+    '│   :vimgrep /useState/ **/*.tsx → Find in all TSX files        │',
+    '│   :cdo s/useState/React.useState/g → Replace in quickfix      │',
+    '│   :cfdo %s/old/new/ge | update → Replace in QF files          │',
+    '│   :g/console.log/d      → Delete all console.log lines        │',
+    '│   :g!/^import/d         → Delete all non-import lines         │',
+    '│   :v/test/d             → Keep only lines with "test"         │',
+    '│                                                                │',
+    '│ 🚀 REACT REFACTORING:                                          │',
+    '│   :argdo %s/class=/className=/ge → Fix all class attributes   │',
+    '│   :bufdo %s/<(\\w+)>/<\\1 \\/>/ge → Self-close empty tags      │',
+    '│   :args src/**/*.tsx | argdo %s/Component/FC/ge → Rename type │',
+    '│   :%s/\\v(use\\w+)\\(/const \\1 = \\1(/g → Destructure hooks    │',
+    '│                                                                │',
+    '│ 📦 IMPORT MANAGEMENT:                                          │',
+    '│   :g/^import.*\\.css/m0 → Move CSS imports to top             │',
+    '│   :g/^import {/s/}/} from/ → Fix import formatting            │',
+    '│   :sort u /^import/     → Sort and dedupe imports             │',
+    '│   :%!npx organize-imports-cli → Use external tool             │',
+    '│                                                                │',
+    '│ 🧪 TEST OPERATIONS:                                            │',
+    '│   :Telescope grep_string search=describe → Find all tests     │',
+    '│   :vimgrep /it\\(/ **/*.test.tsx → Find all test cases        │',
+    '│   :args **/*.test.tsx | argdo normal gg=G → Format tests     │',
+    '│   :cexpr system("npm test -- --listTests") → List tests in QF│',
+    '│                                                                │',
+    '│ 📝 CODE GENERATION:                                            │',
+    '│   :read !echo "interface Props {}" → Insert interface         │',
+    '│   :0read !cat ~/.config/nvim/templates/component.tsx → Template│',
+    '│   :put =range(1,10)->map("v:val . \'. \'") → Number list     │',
+    '│   :.!jq .              → Format JSON under cursor              │',
+    '│                                                                │',
+    '│ 🔍 ADVANCED PATTERNS:                                          │',
+    '│   :%s/\\v<(\\w+)\\s+(\\w+)>/\\2 \\1/g → Swap word pairs          │',
+    '│   :g/^\\s*\\/\\//d       → Remove all comment lines             │',
+    '│   :%s/\\v"([^"]+)"/`\\1`/g → Convert quotes to backticks      │',
+    '│   :g/TODO\\|FIXME\\|XXX/ → Show all code markers              │',
+    '│                                                                │',
+    '│ ⚡ PRODUCTIVITY COMBOS:                                        │',
+    '│   :Telescope find_files | :argadd → Add found files to args   │',
+    '│   :argdo TSToolsAddMissingImports | update → Fix imports     │',
+    '│   :cdo normal @q       → Run macro on quickfix items          │',
+    '│   :bufdo setlocal syntax=off | e → Reload all buffers        │',
+    '│   :%s//\\=@"/g          → Replace with yanked text            │',
+    '│                                                                │',
+    '│ 💡 TIPS:                                                       │',
+    '│   • Add "e" flag to suppress errors: /ge                      │',
+    '│   • Use \\v for "very magic" regex mode                       │',
+    '│   • Combine with | update to save changes                     │',
+    '│   • Use :cdo for quickfix, :ldo for location list            │',
+    '╰────────────────────────────────────────────────────────────────╯',
+  }
+  
+  -- Create a floating window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, commands_help)
+  
+  local width = 68
+  local height = #commands_help
+  local win_opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2 - 2,
+    style = 'minimal',
+    border = 'rounded',
+  }
+  
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+  
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+  
+  -- Add syntax highlighting for better readability
+  vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+  
+  -- Close on any key press
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', ':close<CR>', { noremap = true, silent = true })
+end, { desc = '[C]ommand-line: Show [?]help for power commands' })
 
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -723,7 +1144,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        ts_ls = {},
+        -- ts_ls = {}, -- Disabled in favor of typescript-tools.nvim
         emmet_language_server = {},
         --
 
@@ -915,11 +1336,15 @@ require('lazy').setup({
           ['<C-l>'] = cmp.mapping(function()
             if luasnip.expand_or_locally_jumpable() then
               luasnip.expand_or_jump()
+            else
+              vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Right>', true, true, true), 'n', true)
             end
           end, { 'i', 's' }),
           ['<C-h>'] = cmp.mapping(function()
             if luasnip.locally_jumpable(-1) then
               luasnip.jump(-1)
+            else
+              vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Left>', true, true, true), 'n', true)
             end
           end, { 'i', 's' }),
 
@@ -932,10 +1357,63 @@ require('lazy').setup({
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
             group_index = 0,
           },
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-          { name = 'path' },
-          { name = 'nvim_lsp_signature_help' },
+          { 
+            name = 'nvim_lsp',
+            priority = 1000,
+            entry_filter = function(entry, ctx)
+              -- Prioritize React imports
+              local kind = entry:get_kind()
+              local label = entry:get_completion_item().label
+              
+              -- Check if it's a React-related import
+              if label and (
+                label:match('^useState') or
+                label:match('^useEffect') or
+                label:match('^useCallback') or
+                label:match('^useMemo') or
+                label:match('^useRef') or
+                label:match('^useContext') or
+                label:match('^React') or
+                label:match('^Component') or
+                label:match('^Fragment')
+              ) then
+                entry.completion_item.sortText = '0' .. (entry.completion_item.sortText or label)
+              end
+              
+              return true
+            end,
+          },
+          { name = 'luasnip', priority = 750 },
+          { name = 'path', priority = 500 },
+          { name = 'nvim_lsp_signature_help', priority = 400 },
+        },
+        sorting = {
+          priority_weight = 1.0,
+          comparators = {
+            -- Prioritize exact matches and React imports
+            function(entry1, entry2)
+              local label1 = entry1.completion_item.label
+              local label2 = entry2.completion_item.label
+              
+              -- Prioritize React hooks
+              local react_hooks = { 'useState', 'useEffect', 'useCallback', 'useMemo', 'useRef', 'useContext' }
+              for _, hook in ipairs(react_hooks) do
+                if label1 and label1:match('^' .. hook) then return true end
+                if label2 and label2:match('^' .. hook) then return false end
+              end
+              
+              return nil
+            end,
+            require('cmp.config.compare').offset,
+            require('cmp.config.compare').exact,
+            require('cmp.config.compare').score,
+            require('cmp.config.compare').recently_used,
+            require('cmp.config.compare').locality,
+            require('cmp.config.compare').kind,
+            require('cmp.config.compare').sort_text,
+            require('cmp.config.compare').length,
+            require('cmp.config.compare').order,
+          },
         },
       }
     end,
