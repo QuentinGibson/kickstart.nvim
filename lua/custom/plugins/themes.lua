@@ -121,8 +121,8 @@ return {
         },
       }
 
-      -- Don't set automatically - let the toggler handle it
-      -- vim.cmd.colorscheme('catppuccin')
+      -- Set catppuccin as the default colorscheme
+      vim.cmd.colorscheme('catppuccin')
     end,
   },
   {

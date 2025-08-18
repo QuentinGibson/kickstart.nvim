@@ -254,12 +254,12 @@ vim.keymap.set('v', '<leader>re', function()
   local start_line = vim.fn.getpos("'<")[2]
   local end_line = vim.fn.getpos("'>")[2]
   local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
-  
+
   local component_name = vim.fn.input 'New component name: '
   if component_name == '' then
     return
   end
-  
+
   -- Create the new component
   local new_component = {
     'interface ' .. component_name .. 'Props {',
@@ -269,23 +269,23 @@ vim.keymap.set('v', '<leader>re', function()
     'function ' .. component_name .. '({}: ' .. component_name .. 'Props) {',
     '  return (',
   }
-  
+
   -- Add the selected lines with proper indentation
   for _, line in ipairs(lines) do
     table.insert(new_component, '    ' .. line)
   end
-  
+
   table.insert(new_component, '  )')
   table.insert(new_component, '}')
   table.insert(new_component, '')
-  
+
   -- Replace selection with component usage
   vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, { '<' .. component_name .. ' />' })
-  
+
   -- Add the component definition at the end of file
   local buf_lines = vim.api.nvim_buf_line_count(0)
   vim.api.nvim_buf_set_lines(0, buf_lines, buf_lines, false, new_component)
-  
+
   print('Created component: ' .. component_name)
 end, { desc = '[R]eact: [E]xtract to component' })
 
@@ -295,7 +295,7 @@ vim.keymap.set('n', '<leader>rh', function()
   if hook_name == '' then
     return
   end
-  
+
   local lines = {
     'export function use' .. hook_name .. '() {',
     '  // Hook logic here',
@@ -305,7 +305,7 @@ vim.keymap.set('n', '<leader>rh', function()
     '  }',
     '}',
   }
-  
+
   vim.api.nvim_put(lines, 'l', true, true)
 end, { desc = '[R]eact: Create custom [h]ook' })
 
@@ -341,11 +341,11 @@ vim.keymap.set('n', '<leader>r?', function()
     '│                                                       │',
     '╰───────────────────────────────────────────────────────╯',
   }
-  
+
   -- Create a floating window
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, react_help)
-  
+
   local width = 60
   local height = #react_help
   local win_opts = {
@@ -357,13 +357,13 @@ vim.keymap.set('n', '<leader>r?', function()
     style = 'minimal',
     border = 'rounded',
   }
-  
+
   local win = vim.api.nvim_open_win(buf, true, win_opts)
-  
+
   -- Set buffer options
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-  
+
   -- Close on any key press
   vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
@@ -436,11 +436,11 @@ vim.keymap.set('n', '<leader>t?', function()
     '│   C-a t      → Show time                                   │',
     '╰────────────────────────────────────────────────────────────╯',
   }
-  
+
   -- Create a floating window
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, tmux_help)
-  
+
   local width = 65
   local height = #tmux_help
   local win_opts = {
@@ -452,16 +452,16 @@ vim.keymap.set('n', '<leader>t?', function()
     style = 'minimal',
     border = 'rounded',
   }
-  
+
   local win = vim.api.nvim_open_win(buf, true, win_opts)
-  
+
   -- Set buffer options
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-  
+
   -- Add syntax highlighting for better readability
   vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
-  
+
   -- Close on any key press
   vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
@@ -520,11 +520,11 @@ vim.keymap.set('n', '<leader>q?', function()
     '│   • QF is just a buffer - you can edit it!                 │',
     '╰────────────────────────────────────────────────────────────╯',
   }
-  
+
   -- Create a floating window
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, quickfix_help)
-  
+
   local width = 65
   local height = #quickfix_help
   local win_opts = {
@@ -536,16 +536,16 @@ vim.keymap.set('n', '<leader>q?', function()
     style = 'minimal',
     border = 'rounded',
   }
-  
+
   local win = vim.api.nvim_open_win(buf, true, win_opts)
-  
+
   -- Set buffer options
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-  
+
   -- Add syntax highlighting for better readability
   vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
-  
+
   -- Close on any key press
   vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
@@ -616,11 +616,11 @@ vim.keymap.set('n', '<leader>c?', function()
     '│   • Use :cdo for quickfix, :ldo for location list            │',
     '╰────────────────────────────────────────────────────────────────╯',
   }
-  
+
   -- Create a floating window
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, commands_help)
-  
+
   local width = 68
   local height = #commands_help
   local win_opts = {
@@ -632,16 +632,16 @@ vim.keymap.set('n', '<leader>c?', function()
     style = 'minimal',
     border = 'rounded',
   }
-  
+
   local win = vim.api.nvim_open_win(buf, true, win_opts)
-  
+
   -- Set buffer options
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-  
+
   -- Add syntax highlighting for better readability
   vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
-  
+
   -- Close on any key press
   vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':close<CR>', { noremap = true, silent = true })
@@ -1146,7 +1146,85 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {}, -- Disabled in favor of typescript-tools.nvim
         emmet_language_server = {},
-        --
+
+        -- PHP Language Server
+        intelephense = {
+          settings = {
+            intelephense = {
+              files = {
+                maxSize = 5000000,
+              },
+              environment = {
+                phpVersion = '8.2',
+              },
+              format = {
+                enable = true,
+              },
+              stubs = {
+                'bcmath',
+                'bz2',
+                'calendar',
+                'Core',
+                'curl',
+                'date',
+                'dba',
+                'dom',
+                'enchant',
+                'fileinfo',
+                'filter',
+                'ftp',
+                'gd',
+                'gettext',
+                'hash',
+                'iconv',
+                'imap',
+                'intl',
+                'json',
+                'ldap',
+                'libxml',
+                'mbstring',
+                'mcrypt',
+                'mysql',
+                'mysqli',
+                'password',
+                'pcntl',
+                'pcre',
+                'PDO',
+                'pdo_mysql',
+                'Phar',
+                'readline',
+                'recode',
+                'Reflection',
+                'regex',
+                'session',
+                'SimpleXML',
+                'soap',
+                'sockets',
+                'sodium',
+                'SPL',
+                'standard',
+                'superglobals',
+                'sysvsem',
+                'sysvshm',
+                'tokenizer',
+                'xml',
+                'xdebug',
+                'xmlreader',
+                'xmlwriter',
+                'yaml',
+                'zip',
+                'zlib',
+                'wordpress',
+                'phpunit',
+              },
+            },
+          },
+        },
+
+        -- HTML Language Server (for Blade templates)
+        html = {
+          filetypes = { 'html', 'blade' },
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -1180,6 +1258,11 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'phpcs', -- PHP Code Sniffer
+        'php-cs-fixer', -- PHP formatter
+        'phpstan', -- PHP static analysis
+        'blade-formatter', -- Laravel Blade formatter
+        'pint', -- Laravel Pint formatter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1357,29 +1440,32 @@ require('lazy').setup({
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
             group_index = 0,
           },
-          { 
+          {
             name = 'nvim_lsp',
             priority = 1000,
             entry_filter = function(entry, ctx)
               -- Prioritize React imports
               local kind = entry:get_kind()
               local label = entry:get_completion_item().label
-              
+
               -- Check if it's a React-related import
-              if label and (
-                label:match('^useState') or
-                label:match('^useEffect') or
-                label:match('^useCallback') or
-                label:match('^useMemo') or
-                label:match('^useRef') or
-                label:match('^useContext') or
-                label:match('^React') or
-                label:match('^Component') or
-                label:match('^Fragment')
-              ) then
+              if
+                label
+                and (
+                  label:match '^useState'
+                  or label:match '^useEffect'
+                  or label:match '^useCallback'
+                  or label:match '^useMemo'
+                  or label:match '^useRef'
+                  or label:match '^useContext'
+                  or label:match '^React'
+                  or label:match '^Component'
+                  or label:match '^Fragment'
+                )
+              then
                 entry.completion_item.sortText = '0' .. (entry.completion_item.sortText or label)
               end
-              
+
               return true
             end,
           },
@@ -1394,14 +1480,18 @@ require('lazy').setup({
             function(entry1, entry2)
               local label1 = entry1.completion_item.label
               local label2 = entry2.completion_item.label
-              
+
               -- Prioritize React hooks
               local react_hooks = { 'useState', 'useEffect', 'useCallback', 'useMemo', 'useRef', 'useContext' }
               for _, hook in ipairs(react_hooks) do
-                if label1 and label1:match('^' .. hook) then return true end
-                if label2 and label2:match('^' .. hook) then return false end
+                if label1 and label1:match('^' .. hook) then
+                  return true
+                end
+                if label2 and label2:match('^' .. hook) then
+                  return false
+                end
               end
-              
+
               return nil
             end,
             require('cmp.config.compare').offset,
@@ -1437,7 +1527,7 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'catppuccin'
+      -- vim.cmd.colorscheme 'tokyonight'
     end,
   },
 
