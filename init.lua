@@ -137,6 +137,11 @@ vim.opt.breakindent = true
 -- Save undo history
 vim.opt.undofile = true
 
+-- Disable swap files
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.writebackup = false
+
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
@@ -223,6 +228,10 @@ vim.keymap.set('i', '<C-h>', '<Left>', { desc = 'Move cursor left in insert mode
 vim.keymap.set('i', '<C-l>', '<Right>', { desc = 'Move cursor right in insert mode' })
 vim.keymap.set('i', '<C-j>', '<Down>', { desc = 'Move cursor down in insert mode' })
 vim.keymap.set('i', '<C-k>', '<Up>', { desc = 'Move cursor up in insert mode' })
+
+-- Better navigation for wrapped lines
+vim.keymap.set('n', 'j', 'gj', { desc = 'Move down visual line' })
+vim.keymap.set('n', 'k', 'gk', { desc = 'Move up visual line' })
 
 -- React-specific keybindings
 vim.keymap.set('n', '<leader>rc', function()
@@ -665,6 +674,34 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.highlight.on_yank()
+  end,
+})
+
+-- Auto-save after 3 seconds of no changes
+vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
+  desc = 'Auto-save file after 3 seconds of inactivity',
+  group = vim.api.nvim_create_augroup('auto-save', { clear = true }),
+  callback = function(event)
+    -- Only auto-save if the buffer is a normal file and is modified
+    local buftype = vim.api.nvim_buf_get_option(event.buf, 'buftype')
+    local modified = vim.api.nvim_buf_get_option(event.buf, 'modified')
+    
+    if buftype == '' and modified then
+      -- Cancel any existing timer for this buffer
+      if vim.b[event.buf].autosave_timer then
+        vim.fn.timer_stop(vim.b[event.buf].autosave_timer)
+      end
+      
+      -- Start a new timer to save after 3 seconds (3000ms)
+      vim.b[event.buf].autosave_timer = vim.fn.timer_start(3000, function()
+        -- Check if buffer still exists and is modified
+        if vim.api.nvim_buf_is_valid(event.buf) and vim.api.nvim_buf_get_option(event.buf, 'modified') then
+          vim.api.nvim_buf_call(event.buf, function()
+            vim.cmd('silent! write')
+          end)
+        end
+      end)
+    end
   end,
 })
 
@@ -1472,38 +1509,6 @@ require('lazy').setup({
           { name = 'luasnip', priority = 750 },
           { name = 'path', priority = 500 },
           { name = 'nvim_lsp_signature_help', priority = 400 },
-        },
-        sorting = {
-          priority_weight = 1.0,
-          comparators = {
-            -- Prioritize exact matches and React imports
-            function(entry1, entry2)
-              local label1 = entry1.completion_item.label
-              local label2 = entry2.completion_item.label
-
-              -- Prioritize React hooks
-              local react_hooks = { 'useState', 'useEffect', 'useCallback', 'useMemo', 'useRef', 'useContext' }
-              for _, hook in ipairs(react_hooks) do
-                if label1 and label1:match('^' .. hook) then
-                  return true
-                end
-                if label2 and label2:match('^' .. hook) then
-                  return false
-                end
-              end
-
-              return nil
-            end,
-            require('cmp.config.compare').offset,
-            require('cmp.config.compare').exact,
-            require('cmp.config.compare').score,
-            require('cmp.config.compare').recently_used,
-            require('cmp.config.compare').locality,
-            require('cmp.config.compare').kind,
-            require('cmp.config.compare').sort_text,
-            require('cmp.config.compare').length,
-            require('cmp.config.compare').order,
-          },
         },
       }
     end,
