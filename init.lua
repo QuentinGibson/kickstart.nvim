@@ -677,29 +677,34 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- Auto-save after 3 seconds of no changes
-vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
-  desc = 'Auto-save file after 3 seconds of inactivity',
+-- Auto-save after 20 seconds of no movement in normal mode
+vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI', 'ModeChanged' }, {
+  desc = 'Auto-save file after 20 seconds of inactivity in normal mode',
   group = vim.api.nvim_create_augroup('auto-save', { clear = true }),
   callback = function(event)
-    -- Only auto-save if the buffer is a normal file and is modified
+    -- Cancel any existing timer for this buffer
+    if vim.b[event.buf].autosave_timer then
+      vim.fn.timer_stop(vim.b[event.buf].autosave_timer)
+      vim.b[event.buf].autosave_timer = nil
+    end
+    
+    -- Only set timer if we're in normal mode, buffer is a normal file and is modified
+    local mode = vim.fn.mode()
     local buftype = vim.api.nvim_buf_get_option(event.buf, 'buftype')
     local modified = vim.api.nvim_buf_get_option(event.buf, 'modified')
     
-    if buftype == '' and modified then
-      -- Cancel any existing timer for this buffer
-      if vim.b[event.buf].autosave_timer then
-        vim.fn.timer_stop(vim.b[event.buf].autosave_timer)
-      end
-      
-      -- Start a new timer to save after 3 seconds (3000ms)
-      vim.b[event.buf].autosave_timer = vim.fn.timer_start(3000, function()
-        -- Check if buffer still exists and is modified
-        if vim.api.nvim_buf_is_valid(event.buf) and vim.api.nvim_buf_get_option(event.buf, 'modified') then
+    if mode == 'n' and buftype == '' and modified then
+      -- Start a new timer to save after 20 seconds (20000ms)
+      vim.b[event.buf].autosave_timer = vim.fn.timer_start(20000, function()
+        -- Check if buffer still exists, is modified, and we're still in normal mode
+        if vim.api.nvim_buf_is_valid(event.buf) 
+           and vim.api.nvim_buf_get_option(event.buf, 'modified')
+           and vim.fn.mode() == 'n' then
           vim.api.nvim_buf_call(event.buf, function()
             vim.cmd('silent! write')
           end)
         end
+        vim.b[event.buf].autosave_timer = nil
       end)
     end
   end,
@@ -1481,11 +1486,14 @@ require('lazy').setup({
             name = 'nvim_lsp',
             priority = 1000,
             entry_filter = function(entry, ctx)
-              -- Prioritize React imports
-              local kind = entry:get_kind()
               local label = entry:get_completion_item().label
+              
+              -- Filter out radius components from shadcn/ui
+              if label and (label:match 'radius' or label:match 'Radius') then
+                return false
+              end
 
-              -- Check if it's a React-related import
+              -- Prioritize React imports
               if
                 label
                 and (
