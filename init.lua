@@ -1059,7 +1059,53 @@ require('lazy').setup({
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+          -- Custom code action function to filter out radix-ui imports
+          local function filtered_code_action(options)
+            options = options or {}
+            local original_filter = options.filter
+            
+            options.filter = function(action)
+              -- Filter out radix-ui imports from code actions
+              if action.title and action.title:match('@radix%-ui/') then
+                return false
+              end
+              
+              -- Check if the action contains radix-ui in its edit
+              if action.edit and action.edit.documentChanges then
+                for _, change in ipairs(action.edit.documentChanges) do
+                  if change.edits then
+                    for _, edit in ipairs(change.edits) do
+                      if edit.newText and edit.newText:match('@radix%-ui/') then
+                        return false
+                      end
+                    end
+                  end
+                end
+              end
+              
+              -- Check workspace edit
+              if action.edit and action.edit.changes then
+                for _, changes in pairs(action.edit.changes) do
+                  for _, change in ipairs(changes) do
+                    if change.newText and change.newText:match('@radix%-ui/') then
+                      return false
+                    end
+                  end
+                end
+              end
+              
+              -- Apply original filter if it exists
+              if original_filter then
+                return original_filter(action)
+              end
+              
+              return true
+            end
+            
+            vim.lsp.buf.code_action(options)
+          end
+          
+          map('<leader>ca', filtered_code_action, '[C]ode [A]ction', { 'n', 'x' })
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
@@ -1486,29 +1532,68 @@ require('lazy').setup({
             name = 'nvim_lsp',
             priority = 1000,
             entry_filter = function(entry, ctx)
-              local label = entry:get_completion_item().label
+              local label = entry:get_completion_item().label or ""
+              local detail = entry.completion_item.detail or ""
+              local documentation = entry.completion_item.documentation or ""
+              local insert_text = entry.completion_item.insertText or ""
               
-              -- Filter out radius components from shadcn/ui
-              if label and (label:match 'radius' or label:match 'Radius') then
+              -- Convert documentation to string if it's a table
+              if type(documentation) == "table" and documentation.value then
+                documentation = documentation.value
+              end
+              
+              -- Filter out all radix-ui imports
+              local completion_item = entry.completion_item
+              local text_edit = completion_item.textEdit
+              local additional_text_edits = completion_item.additionalTextEdits
+              
+              -- Check detail field for radix-ui (most reliable)
+              if detail:match('@radix%-ui/') then
+                return false
+              end
+              
+              -- Check additionalTextEdits (where auto-imports are placed)
+              if additional_text_edits then
+                for _, edit in ipairs(additional_text_edits) do
+                  if edit.newText and edit.newText:match('@radix%-ui/') then
+                    return false
+                  end
+                end
+              end
+              
+              -- Check data.entryNames for moduleSpecifier
+              if completion_item.data and completion_item.data.entryNames then
+                for _, entry_name in ipairs(completion_item.data.entryNames) do
+                  if entry_name.data and entry_name.data.moduleSpecifier and 
+                     entry_name.data.moduleSpecifier:match('@radix%-ui/') then
+                    return false
+                  end
+                end
+              end
+              
+              -- Check other fields as backup
+              if insert_text:match('@radix%-ui/') or
+                 (text_edit and text_edit.newText and text_edit.newText:match('@radix%-ui/')) or
+                 documentation:match('@radix%-ui/') or
+                 label:match('radix%-ui') then
+                return false
+              end
+              
+              -- Filter out radius components
+              if label:match('radius') or label:match('Radius') then
                 return false
               end
 
-              -- Prioritize React imports
-              if
-                label
-                and (
-                  label:match '^useState'
-                  or label:match '^useEffect'
-                  or label:match '^useCallback'
-                  or label:match '^useMemo'
-                  or label:match '^useRef'
-                  or label:match '^useContext'
-                  or label:match '^React'
-                  or label:match '^Component'
-                  or label:match '^Fragment'
-                )
-              then
-                entry.completion_item.sortText = '0' .. (entry.completion_item.sortText or label)
+              -- Prioritize @/components/ui imports (highest priority)
+              if detail:match('@/components/ui') or insert_text:match('@/components/ui') then
+                entry.completion_item.sortText = '00' .. (entry.completion_item.sortText or label)
+              -- Prioritize React imports (second priority)  
+              elseif label:match('^useState') or label:match('^useEffect') or 
+                     label:match('^useCallback') or label:match('^useMemo') or
+                     label:match('^useRef') or label:match('^useContext') or
+                     label:match('^React') or label:match('^Component') or
+                     label:match('^Fragment') then
+                entry.completion_item.sortText = '01' .. (entry.completion_item.sortText or label)
               end
 
               return true

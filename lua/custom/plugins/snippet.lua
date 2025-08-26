@@ -216,6 +216,152 @@ ls.add_snippets('typescriptreact', {
     end, { 1 }),
     t { "Provider')", '\t}', '\treturn context', '}' },
   }),
+
+  -- Shadcn/UI Component Import Snippets
+  -- Card components
+  s('ui-card', {
+    t 'import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"',
+  }),
+
+  -- Button components
+  s('ui-button', {
+    t 'import { Button } from "@/components/ui/button"',
+  }),
+
+  -- Input components
+  s('ui-input', {
+    t 'import { Input } from "@/components/ui/input"',
+  }),
+
+  -- Form components
+  s('ui-form', {
+    t 'import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"',
+  }),
+
+  -- Dialog components
+  s('ui-dialog', {
+    t 'import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"',
+  }),
+
+  -- Sheet components
+  s('ui-sheet', {
+    t 'import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"',
+  }),
+
+  -- Dropdown Menu components
+  s('ui-dropdown', {
+    t 'import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuRadioGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuGroup, DropdownMenuShortcut } from "@/components/ui/dropdown-menu"',
+  }),
+
+  -- Select components
+  s('ui-select', {
+    t 'import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select"',
+  }),
+
+  -- Table components
+  s('ui-table', {
+    t 'import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"',
+  }),
+
+  -- Tabs components
+  s('ui-tabs', {
+    t 'import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"',
+  }),
+
+  -- Alert components
+  s('ui-alert', {
+    t 'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"',
+  }),
+
+  -- Badge component
+  s('ui-badge', {
+    t 'import { Badge } from "@/components/ui/badge"',
+  }),
+
+  -- Checkbox component
+  s('ui-checkbox', {
+    t 'import { Checkbox } from "@/components/ui/checkbox"',
+  }),
+
+  -- Label component
+  s('ui-label', {
+    t 'import { Label } from "@/components/ui/label"',
+  }),
+
+  -- Toast components
+  s('ui-toast', {
+    t 'import { Toast, ToastAction, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/ui/toast"',
+  }),
+
+  -- Tooltip components
+  s('ui-tooltip', {
+    t 'import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"',
+  }),
+
+  -- Avatar components
+  s('ui-avatar', {
+    t 'import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"',
+  }),
+
+  -- Popover components
+  s('ui-popover', {
+    t 'import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"',
+  }),
+
+  -- Command components
+  s('ui-command', {
+    t 'import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command"',
+  }),
+
+  -- Calendar component
+  s('ui-calendar', {
+    t 'import { Calendar } from "@/components/ui/calendar"',
+  }),
+
+  -- Accordion components
+  s('ui-accordion', {
+    t 'import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"',
+  }),
+
+  -- Progress component
+  s('ui-progress', {
+    t 'import { Progress } from "@/components/ui/progress"',
+  }),
+
+  -- Slider component
+  s('ui-slider', {
+    t 'import { Slider } from "@/components/ui/slider"',
+  }),
+
+  -- Switch component
+  s('ui-switch', {
+    t 'import { Switch } from "@/components/ui/switch"',
+  }),
+
+  -- Textarea component
+  s('ui-textarea', {
+    t 'import { Textarea } from "@/components/ui/textarea"',
+  }),
+
+  -- Separator component
+  s('ui-separator', {
+    t 'import { Separator } from "@/components/ui/separator"',
+  }),
+
+  -- Skeleton component
+  s('ui-skeleton', {
+    t 'import { Skeleton } from "@/components/ui/skeleton"',
+  }),
+
+  -- ScrollArea components
+  s('ui-scroll-area', {
+    t 'import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"',
+  }),
+
+  -- HoverCard components
+  s('ui-hover-card', {
+    t 'import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"',
+  }),
 })
 
 -- Copy the same snippets for JavaScript React files

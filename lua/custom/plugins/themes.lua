@@ -51,8 +51,7 @@ return {
         },
       }
 
-      -- Set the default colorscheme on startup
-      vim.cmd.colorscheme 'cyberdream'
+      -- Don't set colorscheme here - let catppuccin handle it
     end,
   },
   {
