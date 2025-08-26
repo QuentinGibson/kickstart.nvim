@@ -16,16 +16,20 @@ ls.add_snippets('typescriptreact', {
   -- Simple functional component
   s('sfc', {
     t 'function ',
-    f(return_filename),
+    d(1, function()
+      return sn(nil, i(1, return_filename()))
+    end),
     t { '() {', '\treturn (' },
     t { '', '\t\t<div>' },
     t { '', '\t\t\t' },
-    i(1),
+    i(2),
     t { '', '\t\t</div>' },
     t { '', '\t)' },
     t { '', '}' },
     t { '', '', 'export default ' },
-    f(return_filename),
+    f(function(args)
+      return args[1][1]
+    end, { 1 }),
   }),
 
   -- Functional component with props
