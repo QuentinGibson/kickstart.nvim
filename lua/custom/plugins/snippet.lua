@@ -16,9 +16,7 @@ ls.add_snippets('typescriptreact', {
   -- Simple functional component
   s('sfc', {
     t 'function ',
-    d(1, function()
-      return sn(nil, i(1, return_filename()))
-    end),
+    i(1, return_filename()),
     t { '() {', '\treturn (' },
     t { '', '\t\t<div>' },
     t { '', '\t\t\t' },
@@ -361,6 +359,11 @@ ls.add_snippets('typescriptreact', {
   -- HoverCard components
   s('ui-hover-card', {
     t 'import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"',
+  }),
+
+  -- Drawer components
+  s('ui-drawer', {
+    t 'import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"',
   }),
 })
 

@@ -1235,6 +1235,22 @@ require('lazy').setup({
         -- ts_ls = {}, -- Disabled in favor of typescript-tools.nvim
         emmet_language_server = {},
 
+        -- Biome LSP (formatter and linter for JS/TS/JSON/JSX)
+        biome = {},
+
+        -- Tailwind CSS LSP
+        tailwindcss = {
+          settings = {
+            tailwindCSS = {
+              experimental = {
+                classRegex = {
+                  { "useSortedClasses\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+                },
+              },
+            },
+          },
+        },
+
         -- PHP Language Server
         intelephense = {
           settings = {
@@ -1314,6 +1330,25 @@ require('lazy').setup({
           filetypes = { 'html', 'blade' },
         },
 
+        -- Java Language Server  
+        jdtls = {
+          settings = {
+            java = {
+              configuration = {
+                runtimes = {
+                  {
+                    name = "JavaSE-17",
+                    path = "/usr/lib/jvm/java-17-openjdk-amd64/",
+                  }
+                }
+              },
+              format = {
+                enabled = true,
+              }
+            }
+          }
+        },
+
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -1346,11 +1381,14 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'biome', -- Biome formatter and linter for JS/TS/JSON/JSX
         'phpcs', -- PHP Code Sniffer
         'php-cs-fixer', -- PHP formatter
         'phpstan', -- PHP static analysis
         'blade-formatter', -- Laravel Blade formatter
         'pint', -- Laravel Pint formatter
+        'google-java-format', -- Java formatter
+        'checkstyle', -- Java linter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1407,10 +1445,20 @@ require('lazy').setup({
         -- python = { "isort", "black" },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettier', stop_after_first = true },
-        typescript = { 'prettier', stop_after_first = true, timeout_ms = 10000 },
-        typescriptreact = { 'prettier', stop_after_first = true, timeout_ms = 10000 },
+        javascript = { 'biome-check', 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'biome-check', 'prettier', stop_after_first = true },
+        typescript = { 'biome-check', 'prettier', stop_after_first = true, timeout_ms = 10000 },
+        typescriptreact = { 'biome-check', 'prettier', stop_after_first = true, timeout_ms = 10000 },
+        json = { 'biome', stop_after_first = true },
+        jsonc = { 'biome', stop_after_first = true },
+        java = { 'google-java-format' },
+      },
+      formatters = {
+        ['biome-check'] = {
+          command = 'biome',
+          args = { 'check', '--write', '--unsafe', '--stdin-file-path', '$FILENAME' },
+          stdin = true,
+        },
       },
     },
   },
@@ -1676,7 +1724,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'java' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {

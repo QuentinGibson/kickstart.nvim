@@ -47,7 +47,20 @@ return {
       'nvim-telescope/telescope.nvim',
       'neovim/nvim-lspconfig',
     },
-    opts = {},
+    opts = {
+      document_color = {
+        enabled = true,
+        kind = "inline",
+        inline_symbol = "󰝤 ",
+      },
+      conceal = {
+        enabled = false,
+      },
+      custom_filetypes = {},
+    },
+    config = function(_, opts)
+      require('tailwind-tools').setup(opts)
+    end,
   },
   {
     'tris203/hawtkeys.nvim',
