@@ -1389,6 +1389,8 @@ require('lazy').setup({
         'pint', -- Laravel Pint formatter
         'google-java-format', -- Java formatter
         'checkstyle', -- Java linter
+        'markdownlint', -- Markdown linter
+        'jsonlint', -- JSON linter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
